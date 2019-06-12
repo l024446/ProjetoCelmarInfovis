@@ -17,7 +17,12 @@
  */
 package projetocelmarinfovis;
 
+import conversaoMDS.LerArquivosDaPasta;
+import conversaoMDS.TabelaContagemPalavras;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import javax.swing.JFileChooser;
 
 /**
@@ -25,6 +30,9 @@ import javax.swing.JFileChooser;
  * @author luis
  */
 public class TelaPrincipal extends javax.swing.JFrame {
+    private double[][] pontos;
+    private HashMap <String, Integer> livros;
+    private TabelaContagemPalavras contador;
 
     /**
      * Creates new form TelaPrincipal
@@ -42,48 +50,48 @@ public class TelaPrincipal extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jInternalFrame1 = new javax.swing.JInternalFrame();
-        jButton1 = new javax.swing.JButton();
-        jTextField1 = new javax.swing.JTextField();
-        jButton2 = new javax.swing.JButton();
+        areaPlotagem = new javax.swing.JInternalFrame();
+        selecionarPasta = new javax.swing.JButton();
+        caminhoPasta = new javax.swing.JTextField();
+        gerarGrafico = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jInternalFrame1.setVisible(true);
+        areaPlotagem.setVisible(true);
 
-        javax.swing.GroupLayout jInternalFrame1Layout = new javax.swing.GroupLayout(jInternalFrame1.getContentPane());
-        jInternalFrame1.getContentPane().setLayout(jInternalFrame1Layout);
-        jInternalFrame1Layout.setHorizontalGroup(
-            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout areaPlotagemLayout = new javax.swing.GroupLayout(areaPlotagem.getContentPane());
+        areaPlotagem.getContentPane().setLayout(areaPlotagemLayout);
+        areaPlotagemLayout.setHorizontalGroup(
+            areaPlotagemLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 0, Short.MAX_VALUE)
         );
-        jInternalFrame1Layout.setVerticalGroup(
-            jInternalFrame1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        areaPlotagemLayout.setVerticalGroup(
+            areaPlotagemLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 347, Short.MAX_VALUE)
         );
 
-        jButton1.setText("Selecionar Pasta");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        selecionarPasta.setText("Selecionar Pasta");
+        selecionarPasta.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                selecionarPastaActionPerformed(evt);
             }
         });
 
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
+        caminhoPasta.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+                caminhoPastaActionPerformed(evt);
             }
         });
-        jTextField1.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+        caminhoPasta.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
             public void propertyChange(java.beans.PropertyChangeEvent evt) {
-                jTextField1PropertyChange(evt);
+                caminhoPastaPropertyChange(evt);
             }
         });
 
-        jButton2.setText("Gerar Grafico MDS");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        gerarGrafico.setText("Gerar Grafico MDS");
+        gerarGrafico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                gerarGraficoActionPerformed(evt);
             }
         });
 
@@ -93,63 +101,83 @@ public class TelaPrincipal extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jInternalFrame1)
+                    .addComponent(areaPlotagem)
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
-                        .addComponent(jButton1)
+                        .addComponent(selecionarPasta)
                         .addGap(18, 18, 18)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 348, Short.MAX_VALUE)
+                        .addComponent(caminhoPasta, javax.swing.GroupLayout.DEFAULT_SIZE, 348, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
-                        .addComponent(jButton2)))
+                        .addComponent(gerarGrafico)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jInternalFrame1)
+                .addComponent(areaPlotagem)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(39, 39, 39)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jButton1)
-                            .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(selecionarPasta)
+                            .addComponent(caminhoPasta, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton2)))
+                        .addComponent(gerarGrafico)))
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void selecionarPastaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selecionarPastaActionPerformed
         JFileChooser chooser = new JFileChooser();
         chooser.showOpenDialog(null);
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         File f = chooser.getCurrentDirectory();
         String pasta = f.getAbsolutePath();
-        jTextField1.setText(pasta);
-    }//GEN-LAST:event_jButton1ActionPerformed
+        caminhoPasta.setText(pasta);
+    }//GEN-LAST:event_selecionarPastaActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        if(jTextField1.getText() == ""){
-            
+    private void gerarGraficoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gerarGraficoActionPerformed
+        if(caminhoPasta.getText() == ""){
+            erroCaminhoPasta();
         }else{
-            String pasta = jTextField1.getText();
-            
+            lerArquivos(caminhoPasta.getText());
+            criarDataset();
+            plotargrafico();
         }
         
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_gerarGraficoActionPerformed
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
+    private void caminhoPastaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_caminhoPastaActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    }//GEN-LAST:event_caminhoPastaActionPerformed
 
-    private void jTextField1PropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_jTextField1PropertyChange
+    private void caminhoPastaPropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_caminhoPastaPropertyChange
 
-    }//GEN-LAST:event_jTextField1PropertyChange
+    }//GEN-LAST:event_caminhoPastaPropertyChange
 
+    private void erroCaminhoPasta(){
+        //TODO - implementar erro quando o caminho para a pasta estiver vazio
+    }
+    
+    private void lerArquivos(String pasta){
+        File file = new File(pasta);
+        contador = new TabelaContagemPalavras();
+        LerArquivosDaPasta leitor = new LerArquivosDaPasta();
+        leitor.lerArquivos(file, contador);
+                
+        
+    }
+    
+    private void criarDataset(){
+        
+    }
  
+    private void plotargrafico(){
+        
+    }
     
     /**
      * @param args the command line arguments
@@ -189,9 +217,12 @@ public class TelaPrincipal extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JInternalFrame jInternalFrame1;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JInternalFrame areaPlotagem;
+    private javax.swing.JTextField caminhoPasta;
+    private javax.swing.JButton gerarGrafico;
+    private javax.swing.JButton selecionarPasta;
     // End of variables declaration//GEN-END:variables
+
+    
+    
 }
