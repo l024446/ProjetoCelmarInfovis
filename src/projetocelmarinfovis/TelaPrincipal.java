@@ -17,13 +17,18 @@
  */
 package projetocelmarinfovis;
 
-import conversaoMDS.LerArquivosDaPasta;
 import conversaoMDS.TabelaContagemPalavras;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import javax.swing.JFileChooser;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartFrame;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 /**
  *
@@ -33,6 +38,9 @@ public class TelaPrincipal extends javax.swing.JFrame {
     private double[][] pontos;
     private HashMap <String, Integer> livros;
     private TabelaContagemPalavras contador;
+    private double[][] dataset;
+    private String[] listaLivros;
+    XYSeriesCollection xyDataSet;
 
     /**
      * Creates new form TelaPrincipal
@@ -143,9 +151,12 @@ public class TelaPrincipal extends javax.swing.JFrame {
         if(caminhoPasta.getText() == ""){
             erroCaminhoPasta();
         }else{
+            
             lerArquivos(caminhoPasta.getText());
+                
             criarDataset();
-            plotargrafico();
+            
+            plotarGrafico();
         }
         
     }//GEN-LAST:event_gerarGraficoActionPerformed
@@ -162,22 +173,68 @@ public class TelaPrincipal extends javax.swing.JFrame {
         //TODO - implementar erro quando o caminho para a pasta estiver vazio
     }
     
-    private void lerArquivos(String pasta){
-        File file = new File(pasta);
-        contador = new TabelaContagemPalavras();
-        LerArquivosDaPasta leitor = new LerArquivosDaPasta();
-        leitor.lerArquivos(file, contador);
-                
+
+    
+
+    
+    private void plotarGrafico(){
+        JFreeChart chart = ChartFactory.createScatterPlot(
+            "MDS", // chart title
+            "", // x axis label
+            "", // y axis label
+            xyDataSet, // data  ***-----PROBLEM------***
+            PlotOrientation.VERTICAL,
+            true, // include legend
+            true, // tooltips
+            false // urls
+            );
+
+        // create and display a frame...
+        ChartFrame frame = new ChartFrame("First", chart);
+        frame.pack();
+        frame.setVisible(true);
+    }
+    
+    
+        //funcoes auxiliares para controlar as informacoes
+    private void inicializaListaLivros(){
+        listaLivros = new String[contador.getTotalArquivos()];  
+        livros = (HashMap<String, Integer>) contador.getListaArquivos();
+        Iterator it = livros.entrySet().iterator();
+        int i = 0;
+        for (HashMap.Entry<String, Integer> pair : livros.entrySet()) {
+            listaLivros[i] = pair.getKey();
+            i++;
+        }
+    }
+    
+    private void atualizarDataset(){
         
     }
     
-    private void criarDataset(){
-        
+    //funcoes para receber dados    
+    private void lerArquivos(String pasta)
+    {
+        File file = new File(pasta);
+        contador = new TabelaContagemPalavras();
+        contador.lerArquivos(file);
     }
- 
-    private void plotargrafico(){
-        
+    
+    private void criarDataset()
+    {
+        dataset = new double[contador.getTotalArquivos()][2];
+        inicializaListaLivros();
+        dataset = contador.getPontosMDS();
+        livros = (HashMap<String, Integer>) contador.getListaArquivos();
+
+        xyDataSet = new XYSeriesCollection();
+        XYSeries series = new XYSeries("inicial");
+        for (int i = 0; i < contador.getTotalArquivos(); i++) {
+            series.add(dataset[i][0], dataset[i][1]);
+        }
+        xyDataSet.addSeries(series);
     }
+    
     
     /**
      * @param args the command line arguments
@@ -223,6 +280,7 @@ public class TelaPrincipal extends javax.swing.JFrame {
     private javax.swing.JButton selecionarPasta;
     // End of variables declaration//GEN-END:variables
 
-    
+      
     
 }
+

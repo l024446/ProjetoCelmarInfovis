@@ -23,17 +23,15 @@ package conversaoMDS;
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-import java.lang.reflect.Array;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
-import java.util.function.BiConsumer;
-import javax.swing.JTable;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.TableModel;
+import java.util.Map.Entry;
+import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import mdsj.MDSJ;
 
 /**
@@ -41,126 +39,195 @@ import mdsj.MDSJ;
  * @author luis
  */
 public class TabelaContagemPalavras {
-    Map colunas;
-    Map linhas;
-    int contLinhas;
-    int contColunas;
+    HashMap<String, Integer> colunas;
+    HashMap<String, Integer> linhas;
+    int totalColunas;
+    int totalLinhas;
     double[][] dados;
     int MAXCOLUNAS;
     int MAXLINHAS;
     double[][] pontosIniciais;
-    double[][] pontosMDS;
-    double[][] dissimilaridades;
+    double[][] distancias;
 
-    public TabelaContagemPalavras() {
-        MAXLINHAS = 100;
+    //construtor
+    public TabelaContagemPalavras() 
+    {
+        MAXLINHAS = 60;
         MAXCOLUNAS = 50000;
-        this.colunas = new HashMap <String, Integer>();
-        this.linhas = new HashMap<String, Integer>();
-        this.contLinhas = 0;
-        this.contColunas = 0;
-        dados = new double[MAXLINHAS][MAXCOLUNAS];
+        this.colunas = new HashMap <>();
+        this.linhas = new HashMap<>();
+        this.totalColunas = 0;
+        this.totalLinhas = 0;
+        
+        this.distancias = new double[MAXLINHAS][MAXLINHAS];
+        for(int i =0; i<MAXLINHAS; i++){
+            for(int j =0; j<MAXLINHAS; j++){
+                distancias[i][j] = 0;
+            } 
+        }
+        
+        this.dados = new double[MAXLINHAS][MAXCOLUNAS];
+        for(int i =0; i<MAXLINHAS; i++){
+            for(int j =0; j<MAXCOLUNAS; j++){
+                dados[i][j] = 0;
+            } 
+        }
       }
 
-
-  
-    public void incluiArquivoParaContagem(String nome){
-        if (!linhas.containsKey(nome)){
-            addLinha(nome);
-        }
+    //funções de acesso aos pontos para plotagem
+    public double[][] getPontosIniciais()
+    {
+        calculaPontosIniciais();
+        return pontosIniciais;
     }
-
-    public void incluiPalavra (String arquivo, String palavra){
-        if (!colunas.containsKey(palavra)){
-            inicializaColuna(palavra);
-        }
-        Integer lin = (Integer) linhas.get(arquivo);
-        Integer col = (Integer) colunas.get(palavra);
+    
+    public double[][] getPontosMDS()
+    {
+        calculaDistancias();
+        double[][] pontosMDS = MDSJ.classicalScaling(dados, 2);
         
-        dados[col][lin]++;
-      
-    }
-  
-    private void addLinha(String nomeLinha){
-        linhas.put(nomeLinha, contLinhas);
-        contLinhas++;
-    }
-  
-    private void addColuna(String nomeColuna){
-        colunas.put(nomeColuna, contColunas);
-        contColunas++;
+        System.out.println("testando distancias depois do getPontosMDS:");
+        for(int w = 0; w < distancias[0].length; w++){
+            for(int k = 0; k < distancias[0].length; k++){
+            System.out.print(distancias[w][k]+"  ");
+                
+            }
+            System.out.println();
+        }
+               
+            
+            
+        for(int i = 0; i< linhas.size(); i++)
+        {
+            System.out.println("ponto: ("+pontosMDS[0][i]+ " , "+pontosMDS[1][i]+")"); 
+        }
+        
+        return pontosMDS;
     }
 
-    private void inicializaColuna(String palavra){
-        addColuna(palavra);
-        Integer col = (Integer) colunas.get(palavra);
-        for(int i=0; i<MAXLINHAS; i++){
-            dados[i][col.intValue()] = 0;
-        }
+    public int getTotalArquivos()
+    {
+        return linhas.size();
     }
-  
-    public Map getListaArquivos(){
+    
+    public int getTotalPalavras()
+    {
+        return this.totalLinhas;
+    }
+    
+    public Map getListaArquivos()
+    {
         return this.linhas;
     }
     
-    private double getDistancia(String linha1, String linha2){
+    //funções auxiliares para o calculo dos pontos:
+    private void calculaPontosIniciais()
+    {
+        pontosIniciais = new double[linhas.size()][2];
+        for(int i = 0; i<linhas.size(); i++){
+            pontosIniciais[i][0] = Math.random();
+            pontosIniciais[i][1] = Math.random();
+        }
+    }
+
+    private void calculaDistancias()
+    {      
+        for (int i = 0; i< linhas.size(); i++) {
+            for (int j = 0; j< linhas.size(); j++) {
+
+                distancias[i][j] = getDistancia(i, j);
+                
+            }
+        }
+        
+    }
+    
+    private double getDistancia(Integer linha1, Integer linha2)
+    {
         double distancia = 0;
         int raiz = 0;
-        Iterator it;
-        it = colunas.entrySet().iterator();
-        
-        while(it.hasNext()){
-            Map.Entry coluna = (Map.Entry)it.next();
-            distancia = distancia + dados[Integer.valueOf(linhas.get(linha1).toString())][Integer.valueOf(coluna.getValue().toString())]*dados[Integer.valueOf(linhas.get(linha1).toString())][Integer.valueOf(coluna.getValue().toString())];
+        while (raiz < colunas.size()) {
+            distancia = distancia + Math.pow(dados[linha1][raiz]- dados[linha2][raiz], 2);
             raiz++;
         }
+        
         
         distancia = Math.pow (distancia, 1.0 / raiz);
         
         return distancia;
     }
     
-    public int getTotalArquivos(){
-        return this.contLinhas;
-    }
     
-    public int getTotalPalavras(){
-        return this.contColunas;
-    }
-    
-    private void calculaDissimilaridades(){
-        int i = 0;
-        int j = 0;
-               
-        dissimilaridades = new double[getTotalArquivos()][getTotalArquivos()];
-        for (Iterator it1 = colunas.entrySet().iterator(); it1.hasNext();) {
-            Map.Entry<String, Integer> pair1 = (Map.Entry<String, Integer>) it1.next();
-            for (Iterator it2 = colunas.entrySet().iterator(); it1.hasNext();) {
-                Map.Entry<String, Integer> pair2 = (Map.Entry<String, Integer>) it2.next();
-                dissimilaridades[i][j] = getDistancia(pair1.getKey(), pair2.getKey());
-                j++;
+    public void lerArquivos(final File folder) 
+    {
+        String nomeArquivo;
+        for (final File fileEntry : folder.listFiles()) {
+            if (fileEntry.isFile() && fileEntry.getName().endsWith(".txt")) {
+                nomeArquivo = fileEntry.getName();
+                incluiArquivo(nomeArquivo);
+                lerLinhasdoArquivo (nomeArquivo, fileEntry);
+                }
             }
-            i++;
+    }
+    
+    private void lerLinhasdoArquivo(String nomeArquivo, final File arquivo)
+    {
+        String palavras;
+        try {
+            Scanner scanner = new Scanner(arquivo);
+            while (scanner.hasNextLine()){
+                palavras = scanner.nextLine().replaceAll("[^a-zA-Z ]", "").toLowerCase();
+                lerPalavrasDaLinha(nomeArquivo, palavras);
+            }
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(LerArquivosDaPasta.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+    }
+
+    private void lerPalavrasDaLinha(String nomeArquivo, String linha)
+    {
+        String[] palavras = linha.split(" ");
+        contarPalavras(nomeArquivo, palavras);
+    }
+    
+    private void contarPalavras(String nomeArquivo, String [] palavras)
+    {
+        for (String palavra : palavras) {
+            incluiPalavra(nomeArquivo, palavra);
         }
     }
     
-    public double[][] getPontosIniciais(){
-        iniciaPontosIniciais();
-        return pontosIniciais;
-    }
-    
-    public double[][] getPontosMDS(){
-        pontosMDS = MDSJ.classicalScaling(dissimilaridades);
-        return pontosMDS;
+    public void incluiPalavra (String arquivo, String palavra)
+    {
+        
+        if (!colunas.containsKey(palavra)){
+            addColuna(palavra);
+        }
+        Integer lin = linhas.get(arquivo);
+        Integer col = colunas.get(palavra);
+        
+        dados[lin][col]++;
     }
 
-    private void iniciaPontosIniciais(){
-        pontosIniciais = new double[linhas.size()][2];
-        Random rand = new Random();
-        for(int i = 0; i<linhas.size(); i++){
-            pontosIniciais[i][0] = rand.nextDouble();
-            pontosIniciais[i][1] = rand.nextDouble();
+    
+    //funções para incluir informações no mapa de arquivos ou palavras
+    public void incluiArquivo(String nome)
+    {
+        if (!linhas.containsKey(nome)){
+            addLinha(nome);
         }
     }
 
+    private void addLinha(String nomeLinha)
+    {
+        linhas.put(nomeLinha, totalColunas);
+        totalColunas++;
+    }
+  
+    private void addColuna(String nomeColuna)
+    {
+        colunas.put(nomeColuna, totalLinhas);
+        totalLinhas++;
+    }
 }
